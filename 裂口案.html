@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>刑警日志：裂口女婴案 - 推理排序挑战（智能提示+收款码）</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background: #0a0c12;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #11141f;
+            border-radius: 28px;
+            padding: 20px 18px 32px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.5);
+            border: 1px solid #2a2e3f;
+        }
+        h1 {
+            font-size: 1.7rem;
+            margin: 0 0 5px;
+            letter-spacing: 1px;
+            color: #ffd966;
+            text-shadow: 0 0 3px #8b5a2b;
+        }
+        .sub {
+            border-left: 3px solid #9b2f2f;
+            padding-left: 12px;
+            color: #aaa;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+        .case-badge {
+            background: #1e1e2a;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            color: #ffaa66;
+            margin-bottom: 15px;
+        }
+        .clue-list, .sort-area {
+            background: #0b0d14;
+            border-radius: 24px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+        .clue-item {
+            background: #1a1e2c;
+            margin: 10px 0;
+            padding: 14px 16px;
+            border-radius: 20px;
+            cursor: grab;
+            transition: 0.1s;
+            border: 1px solid #2a2f3f;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .clue-item:active { cursor: grabbing; }
+        .clue-index {
+            background: #2c2f3f;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 40px;
+            font-weight: bold;
+            color: #ffcd94;
+        }
+        .dropzone {
+            min-height: 200px;
+            background: #0f111a;
+            border-radius: 20px;
+            padding: 12px;
+            transition: all 0.1s;
+        }
+        button {
+            background: #2d3e4b;
+            border: none;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+            font-family: monospace;
+        }
+        button:hover { background: #3e5a6b; transform: scale(0.98); }
+        .result {
+            background: #0a0e16;
+            margin-top: 24px;
+            padding: 18px;
+            border-radius: 24px;
+            display: none;
+        }
+        .score { font-size: 1.3rem; color: #ffd966; }
+        hr { border-color: #2a2e3f; margin: 20px 0; }
+        .footer-note, .pay-reminder { font-size: 0.7rem; text-align: center; margin-top: 24px; color: #5a5e70; }
+        .pay-reminder {
+            background: #1a211f;
+            border: 1px solid #c49a6c;
+            border-radius: 18px;
+            padding: 14px;
+            margin-top: 20px;
+            color: #ddd;
+        }
+        .reset-btn { background: #2a2a2a; margin-top: 8px; }
+        .hint-box {
+            background: #2a2a1f;
+            border-left: 4px solid #ffaa66;
+            padding: 12px;
+            margin-top: 16px;
+            border-radius: 12px;
+            color: #ffdd99;
+        }
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 15px 0 10px;
+        }
+        .qr-item {
+            text-align: center;
+            background: #fff;
+            padding: 8px;
+            border-radius: 16px;
+            width: 160px;
+        }
+        .qr-item img {
+            width: 140px;
+            height: 140px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 12px;
+        }
+        .qr-item p {
+            margin: 8px 0 0;
+            font-size: 0.8rem;
+            color: #333;
+            font-weight: bold;
+        }
+        @media (max-width: 500px) {
+            .qr-item { width: 130px; }
+            .qr-item img { width: 110px; height: 110px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="case-badge">📁 卷宗编号：001 · 裂口女婴</div>
+    <h1>🔍 临时探员，开始推理</h1>
+    <div class="sub">现场6条线索，请按正确破案顺序排序（拖拽调整）</div>
+
+    <div style="background:#0b0d14; border-radius:24px; padding:12px; margin-bottom:12px;">
+        <div>📌 待排序线索</div>
+        <div id="sourceList" class="dropzone" style="min-height: 260px;"></div>
+    </div>
+
+    <div class="sort-area">
+        <div>📋 你的破案步骤 (按顺序从上到下)</div>
+        <div id="targetList" class="dropzone" style="min-height: 260px;"></div>
+    </div>
+
+    <button id="submitBtn">🧠 提交推理，比对评分</button>
+    <div id="resultArea" class="result"></div>
+    
+    <!-- 支付区域：双二维码（收款码 + 个人微信） -->
+    <div class="pay-reminder">
+        <p><strong>📦 完整版小说包（前5章+韩征笔记）</strong></p>
+        <p style="font-size: 1.2rem; color: #ffaa66;">9.9元 解锁全部</p>
+        <div class="qr-container">
+            <div class="qr-item">
+                <!-- 请将 src 替换为你自己的收款码图片路径 -->
+                <img src="C:\Users\28172\Desktop\IMG_3151.JPG" alt="微信收款码">
+                <p>扫码支付9.9元</p>
+            </div>
+            <div class="qr-item">
+                <!-- 请将 src 替换为你自己的个人微信二维码图片路径 -->
+                <img src="C:\Users\28172\Desktop\推理游戏\wechat.png" alt="作者微信">
+                <p>添加微信获取文件</p>
+            </div>
+        </div>
+        <p style="font-size: 0.8rem; margin-top: 12px;">支付后请截图发我，马上发送小说包</p>
+    </div>
+    <div class="footer-note">* 可重置重试。连续提交错误会有提示，直至展示正确排序。</div>
+</div>
+
+<script>
+    // 线索数据
+    const clues = [
+        { id: 0, text: "女婴遗体嘴角有异常裂口，缝合粗糙，非煤气爆炸所致" },
+        { id: 1, text: "裂口内侧发现暗红色纹路，疑似符咒（破颜咒）" },
+        { id: 2, text: "调取监控：入殓师魏建国下班后，生魂形态进入停尸房" },
+        { id: 3, text: "母亲刘芸在看守所离奇自缢，监控黑屏" },
+        { id: 4, text: "韩征在殡仪馆拘魂，刘芸尸体指认‘他姓魏’" },
+        { id: 5, text: "魏建国手机发现与‘二爷’的聊天记录 + 脖子鬼眼纹身" }
+    ];
+    const correctOrder = [0, 1, 2, 3, 4, 5];
+
+    let sourceItems = [...clues];
+    let targetItems = [];
+    
+    let wrongSubmitCount = 0;
+    let hintUsed = false;
+    let finalAnswerShown = false;
+
+    function render() {
+        const sourceDiv = document.getElementById('sourceList');
+        const targetDiv = document.getElementById('targetList');
+        
+        sourceDiv.innerHTML = '';
+        sourceItems.forEach((clue) => {
+            sourceDiv.appendChild(createClueElement(clue, 'source', null));
+        });
+        
+        targetDiv.innerHTML = '';
+        targetItems.forEach((clue, idx) => {
+            targetDiv.appendChild(createClueElement(clue, 'target', idx));
+        });
+        
+        bindDragEvents();
+    }
+
+    function createClueElement(clue, zone, orderIndex) {
+        const div = document.createElement('div');
+        div.className = 'clue-item';
+        div.setAttribute('draggable', 'true');
+        div.setAttribute('data-id', clue.id);
+        div.setAttribute('data-zone', zone);
+        
+        const indexSpan = document.createElement('span');
+        indexSpan.className = 'clue-index';
+        if (zone === 'target' && orderIndex !== null) {
+            indexSpan.innerText = (orderIndex + 1).toString();
+        } else {
+            indexSpan.innerText = '☰';
+        }
+        
+        const textSpan = document.createElement('span');
+        textSpan.style.flex = '1';
+        textSpan.innerText = clue.text;
+        
+        div.appendChild(indexSpan);
+        div.appendChild(textSpan);
+        return div;
+    }
+
+    let dragData = { id: null, fromZone: null };
+
+    function onDragStart(e) {
+        if (finalAnswerShown) {
+            e.preventDefault();
+            return false;
+        }
+        const el = e.target.closest('.clue-item');
+        if (!el) return;
+        const id = parseInt(el.getAttribute('data-id'));
+        const zone = el.getAttribute('data-zone');
+        dragData.id = id;
+        dragData.fromZone = zone;
+        e.dataTransfer.setData('text/plain', `${id}|${zone}`);
+        e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function onDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    function onDrop(e, targetZone) {
+        if (finalAnswerShown) return;
+        e.preventDefault();
+        if (dragData.id === null) return;
+        
+        const srcId = dragData.id;
+        const srcZone = dragData.fromZone;
+        
+        let draggedClue = null;
+        if (srcZone === 'source') {
+            draggedClue = sourceItems.find(c => c.id === srcId);
+        } else if (srcZone === 'target') {
+            draggedClue = targetItems.find(c => c.id === srcId);
+        }
+        if (!draggedClue) return;
+        
+        if (targetZone === 'target') {
+            if (srcZone === 'source') {
+                sourceItems = sourceItems.filter(c => c.id !== srcId);
+                targetItems.push(draggedClue);
+            } else if (srcZone === 'target') {
+                const targetContainer = document.getElementById('targetList');
+                const children = [...targetContainer.querySelectorAll('.clue-item')];
+                let dropIndex = children.length;
+                for (let i = 0; i < children.length; i++) {
+                    const rect = children[i].getBoundingClientRect();
+                    if (e.clientY < rect.top + rect.height / 2) {
+                        dropIndex = i;
+                        break;
+                    }
+                }
+                const oldIndex = targetItems.findIndex(c => c.id === srcId);
+                if (oldIndex !== -1) targetItems.splice(oldIndex, 1);
+                targetItems.splice(dropIndex, 0, draggedClue);
+            }
+        } else if (targetZone === 'source') {
+            if (srcZone === 'target') {
+                targetItems = targetItems.filter(c => c.id !== srcId);
+                sourceItems.push(draggedClue);
+            }
+        }
+        
+        dragData = { id: null, fromZone: null };
+        render();
+        document.getElementById('resultArea').style.display = 'none';
+    }
+
+    function bindDragEvents() {
+        const allDraggables = document.querySelectorAll('.clue-item');
+        allDraggables.forEach(el => {
+            el.removeEventListener('dragstart', onDragStart);
+            el.addEventListener('dragstart', onDragStart);
+        });
+        
+        const sourceZone = document.getElementById('sourceList');
+        const targetZone = document.getElementById('targetList');
+        
+        const newSource = sourceZone.cloneNode(true);
+        const newTarget = targetZone.cloneNode(true);
+        sourceZone.parentNode.replaceChild(newSource, sourceZone);
+        targetZone.parentNode.replaceChild(newTarget, targetZone);
+        
+        newSource.id = 'sourceList';
+        newTarget.id = 'targetList';
+        
+        newSource.addEventListener('dragover', onDragOver);
+        newSource.addEventListener('drop', (e) => onDrop(e, 'source'));
+        newTarget.addEventListener('dragover', onDragOver);
+        newTarget.addEventListener('drop', (e) => onDrop(e, 'target'));
+        
+        document.querySelectorAll('.clue-item').forEach(el => {
+            el.addEventListener('dragstart', onDragStart);
+        });
+    }
+
+    function isCurrentOrderCorrect() {
+        if (targetItems.length !== correctOrder.length) return false;
+        for (let i = 0; i < targetItems.length; i++) {
+            if (targetItems[i].id !== correctOrder[i]) return false;
+        }
+        return true;
+    }
+
+    function getFirstWrongIndex() {
+        for (let i = 0; i < targetItems.length; i++) {
+            if (i >= correctOrder.length) return i;
+            if (targetItems[i].id !== correctOrder[i]) return i;
+        }
+        return -1;
+    }
+
+    function generateHint() {
+        if (targetItems.length !== correctOrder.length) {
+            return `你还没有把全部6条线索拖入“破案步骤”区，请先完成所有线索的排序。`;
+        }
+        const wrongIdx = getFirstWrongIndex();
+        if (wrongIdx === -1) return "顺序已正确，无需提示。";
+        const correctClueId = correctOrder[wrongIdx];
+        const correctText = clues.find(c => c.id === correctClueId).text;
+        return `🔍 提示：第 ${wrongIdx+1} 步的位置应该放“${correctText}”。再试试看！`;
+    }
+
+    function showFinalCorrectOrder() {
+        const correctSteps = correctOrder.map(id => clues.find(c => c.id === id).text);
+        let html = `<div class="score">📖 韩征的标准破案顺序</div><ol>`;
+        correctSteps.forEach(step => { html += `<li>${step}</li>`; });
+        html += `</ol><p>很遗憾你没有挑战成功。你可以点击下方“重置线索顺序”重新开始。</p>`;
+        const resultDiv = document.getElementById('resultArea');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = html;
+        finalAnswerShown = true;
+    }
+
+    function handleSubmit() {
+        if (finalAnswerShown) {
+            alert("正确答案已展示，如需重新挑战请点击“重置线索顺序”按钮。");
+            return;
+        }
+        
+        const resultDiv = document.getElementById('resultArea');
+        resultDiv.style.display = 'none';
+        
+        if (targetItems.length !== correctOrder.length) {
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<span style="color:#ffaa88;">⚠️ 未完成排序 · 请将所有6条线索拖拽到“破案步骤”区再提交。</span>`;
+            return;
+        }
+        
+        const isCorrect = isCurrentOrderCorrect();
+        
+        if (isCorrect) {
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <div class="score">🎉 恭喜！推理完美！ 🎉</div>
+                <p>你精准还原了韩征的破案逻辑，不愧是未来的刑警之星！<br>
+                韩征在卷宗上留下批注：<strong>“实习生，你已通过第一关考验，跟我继续追查下一个案件吧。”</strong></p>
+                <p>🔓 解锁福利：扫描下方二维码支付9.9元，即可领取完整小说包。</p>
+            `;
+            finalAnswerShown = true;
+            return;
+        } 
+        
+        wrongSubmitCount++;
+        if (wrongSubmitCount === 1) {
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<div class="score">⚠️ 推理有误</div><p>别灰心，刑侦需要细致观察。再检查一下线索的先后顺序，你可以拖拽调整后再提交。</p>`;
+        } 
+        else if (wrongSubmitCount === 2) {
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<div class="score">🔍 还差一点</div><p>顺序仍有偏差，试着从案发第一步开始思考：最先应该调查什么？</p>`;
+        }
+        else if (wrongSubmitCount === 3 && !hintUsed) {
+            const hintMsg = generateHint();
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<div class="score">💡 提示机会</div><div class="hint-box">${hintMsg}</div><p>根据提示调整顺序后再次提交吧！</p>`;
+            hintUsed = true;
+        }
+        else if (wrongSubmitCount === 4 || (wrongSubmitCount >= 3 && hintUsed)) {
+            showFinalCorrectOrder();
+            return;
+        }
+        else {
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<div class="score">⚠️ 推理错误</div><p>再试试看，或者点击重置重新挑战。</p>`;
+        }
+    }
+
+    function resetGame() {
+        sourceItems = [...clues];
+        targetItems = [];
+        wrongSubmitCount = 0;
+        hintUsed = false;
+        finalAnswerShown = false;
+        render();
+        const resultDiv = document.getElementById('resultArea');
+        resultDiv.style.display = 'none';
+        resultDiv.innerHTML = '';
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', handleSubmit);
+    
+    const resetBtn = document.createElement('button');
+    resetBtn.innerText = '⟳ 重置线索顺序并重新挑战';
+    resetBtn.className = 'reset-btn';
+    resetBtn.addEventListener('click', resetGame);
+    document.querySelector('.container').appendChild(resetBtn);
+    
+    render();
+</script>
+</body>
+</html>
